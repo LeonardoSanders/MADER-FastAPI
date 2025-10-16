@@ -9,14 +9,14 @@ class Message(BaseModel):
 
 class UserSchema(BaseModel):
     id: int
-    username: str
+    name: str
     email: EmailStr
     password: str
 
 
 class UserPublic(BaseModel):
     id: int
-    username: str
+    name: str
     email: EmailStr
 
     model_config = ConfigDict(from_attributes=True)
