@@ -1,0 +1,12 @@
+Mader project
+Command to run postgres separated:
+docker run -d \
+    --name mader_database \
+    -e POSTGRES_USER=app_user \
+    -e POSTGRES_DB=app_db \
+    -e POSTGRES_PASSWORD=app_password \
+    -p 5432:5432 \
+    postgres
+    
+    docker start container_id
+    docker start 1cbc683949ea (notebook)

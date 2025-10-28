@@ -12,6 +12,7 @@ from jwt import (  # type: ignore
 )
 from pwdlib import PasswordHash  # type: ignore
 from sqlalchemy import select
+from sqlalchemy.orm import selectinload
 
 from mader_project.database import AsyncSession, get_session
 from mader_project.models import User
@@ -70,7 +71,9 @@ async def get_current_user(
         raise credentials_exception
     
     user = await session.scalar(
-        select(User).where(User.email == subject_email)
+        select(User)
+        .where(User.email == subject_email)
+        .options(selectinload(User.read_books))
     )
 
     if not user:
