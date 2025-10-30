@@ -1,7 +1,6 @@
-from datetime import datetime, date
-from enum import Enum
+from datetime import datetime
 
-from sqlalchemy import ForeignKey, func, Table, Column
+from sqlalchemy import ForeignKey, func
 from sqlalchemy.orm import Mapped, mapped_column, registry, relationship
 
 table_registry = registry()
@@ -10,7 +9,6 @@ table_registry = registry()
 @table_registry.mapped_as_dataclass
 class Read_Books_Association:
     __tablename__ = 'read_books_association'
-
 
     user_id: Mapped[int] = mapped_column(
         ForeignKey('users.id'), primary_key=True
@@ -32,7 +30,7 @@ class User:
     read_books: Mapped[list['Book']] = relationship(
         secondary='read_books_association',
         back_populates='read_by_users',
-        init=False
+        init=False,
     )
     created_at: Mapped[datetime] = mapped_column(
         init=False, server_default=func.now()
@@ -73,7 +71,7 @@ class Book:
     read_by_users: Mapped[list['User']] = relationship(
         secondary='read_books_association',
         back_populates='read_books',
-        init=False
+        init=False,
     )
     created_at: Mapped[datetime] = mapped_column(
         init=False, server_default=func.now()

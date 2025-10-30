@@ -2,7 +2,7 @@ from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 
 from mader_project.settings import Settings
 
-engine = create_async_engine(Settings().DATABASE_URL) # type: ignore
+engine = create_async_engine(Settings().DATABASE_URL)  # type: ignore
 
 
 async def get_session():  # pragma: no cover

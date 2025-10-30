@@ -43,18 +43,18 @@ def create_acess_token(data: dict):
     encode_jwt = encode(
         to_encode, settings.SECRET_KEY, algorithm=settings.ALGORITHM
     )
-    
+
     return encode_jwt
 
 
 async def get_current_user(
     session: AsyncSession = Depends(get_session),
-    token: str = Depends(oauth2_schema)
+    token: str = Depends(oauth2_schema),
 ):
     credentials_exception = HTTPException(
         status_code=HTTPStatus.UNAUTHORIZED,
         detail='Could not validate credentials',
-        headers={'WWW-Authenticate': 'Bearer'}
+        headers={'WWW-Authenticate': 'Bearer'},
     )
 
     try:
@@ -64,12 +64,12 @@ async def get_current_user(
         subject_email = payload.get('sub')
         if not subject_email:
             raise credentials_exception
-    
+
     except DecodeError:
         raise credentials_exception
     except ExpiredSignatureError:
         raise credentials_exception
-    
+
     user = await session.scalar(
         select(User)
         .where(User.email == subject_email)
@@ -78,5 +78,5 @@ async def get_current_user(
 
     if not user:
         raise credentials_exception
-    
+
     return user
