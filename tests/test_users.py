@@ -141,7 +141,7 @@ def test_edit_user_by_id_forbidden_error(client, other_user, token):
 
 def test_delete_user_by_id(client, user, token):
     response = client.delete(
-        f'/users/delete_user/{user.id}',
+        f'/users/delete-user/{user.id}',
         headers={'Authorization': f'Bearer {token}'},
     )
 

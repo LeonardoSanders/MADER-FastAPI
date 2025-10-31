@@ -105,7 +105,7 @@ async def edit_user_by_id(
 
 
 @router.delete(
-    '/delete_user/{user_id}',
+    '/delete-user/{user_id}',
     status_code=HTTPStatus.OK,
     response_model=Message,
     summary='Endpoint to delete users',
