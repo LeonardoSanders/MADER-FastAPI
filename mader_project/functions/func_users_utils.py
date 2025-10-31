@@ -3,6 +3,7 @@ from http import HTTPStatus
 from fastapi import HTTPException
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import selectinload
 
 from mader_project.models import User
 from mader_project.schemas import UserSchema
@@ -30,9 +31,13 @@ async def verify_existing_user_by_name_and_email(
 
 
 async def verify_existing_user_by_id(user_id: int, session: AsyncSession):
-    user_db = await session.get(User, user_id)
+    user_db = await session.scalar(
+        select(User)
+        .where(User.id == user_id, User.status)
+        .options(selectinload(User.read_books))
+    )
 
-    if not user_db or not user_db.status:
+    if not user_db:
         raise HTTPException(
             status_code=HTTPStatus.NOT_FOUND, detail='User not found!'
         )

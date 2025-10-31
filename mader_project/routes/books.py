@@ -1,8 +1,7 @@
 from http import HTTPStatus
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter
 from sqlalchemy import select
-from sqlalchemy.exc import IntegrityError
 
 from mader_project.dependencies import CurrentUser, Session
 from mader_project.functions.func_books_utils import (
@@ -11,16 +10,22 @@ from mader_project.functions.func_books_utils import (
 )
 from mader_project.functions.normalize_text import normalize_text
 from mader_project.models import Book
-from mader_project.schemas import BookList, BookSchema, BookUpdate, Message
+from mader_project.schemas import (
+    BookCreation,
+    BookList,
+    BookSchema,
+    BookUpdate,
+    Message,
+)
 
 router = APIRouter(prefix='/books', tags=['books'])
 
 
 @router.post(
-    '/book', status_code=HTTPStatus.CREATED, response_model=BookSchema
+    '/create-book', status_code=HTTPStatus.CREATED, response_model=BookSchema
 )
 async def create_book(
-    book: BookSchema, session: Session, current_user: CurrentUser
+    book: BookCreation, session: Session, current_user: CurrentUser
 ):
     await verify_existing_book_by_title(book.title, session)
 
@@ -62,8 +67,8 @@ async def get_book_by_id(
 
 @router.get(
     '/list-book/{title}/{year}',
-    response_model=BookList,
     status_code=HTTPStatus.OK,
+    response_model=BookList,
 )
 async def list_books_by_year(
     title: str, year: int, session: Session, current_user: CurrentUser
@@ -90,23 +95,16 @@ async def delete_book_by_id(
 ):
     book_db = await verify_existing_book_by_id(book_id, session)
 
-    try:
-        await session.delete(book_db)
-        await session.commit()
+    await session.delete(book_db)
+    await session.commit()
 
-        return {'message': 'Book deleted from MADER database!'}
-
-    except IntegrityError:
-        raise HTTPException(
-            status_code=HTTPStatus.INTERNAL_SERVER_ERROR,
-            detail='Book already deleted!',
-        )
+    return {'message': 'Book deleted!'}
 
 
 @router.patch(
     '/update-book/{book_id}',
-    response_model=BookSchema,
     status_code=HTTPStatus.OK,
+    response_model=BookSchema,
 )
 async def update_book(
     book_id: int,

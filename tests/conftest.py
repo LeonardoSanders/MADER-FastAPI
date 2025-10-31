@@ -5,8 +5,9 @@ import pytest
 import pytest_asyncio
 from factory import Factory, LazyAttribute, Sequence  # type: ignore
 from fastapi.testclient import TestClient
-from sqlalchemy import event
+from sqlalchemy import event, select
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
+from sqlalchemy.orm import selectinload
 from testcontainers.postgres import PostgresContainer
 
 from mader_project.app import app
@@ -77,13 +78,19 @@ def mock_db_time():
 
 @pytest_asyncio.fixture
 async def user(session: AsyncSession):
-    user = UserFactory()
-
-    session.add(user)
+    new_user = UserFactory()
+    session.add(new_user)
     await session.commit()
-    await session.refresh(user)
+    await session.refresh(new_user)
 
-    user.clean_password = f'{user.name}@example.com'
+    user = await session.scalar(
+        select(User)
+        .where(User.id == new_user.id)
+        .options(selectinload(User.read_books))
+    )
+    assert user is not None  # Ensure user is found
+
+    new_user.clean_password = f'{user.name}@example.com'
 
     return user
 

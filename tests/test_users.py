@@ -1,6 +1,6 @@
 from http import HTTPStatus
 
-from mader_project.schemas import UserPublic
+from mader_project.schemas import UserPublicBooks
 
 
 def test_create_user(client):
@@ -45,8 +45,8 @@ def test_create_user_conflict_email(client, user):
     assert response.json() == {'detail': 'Email already exists!'}
 
 
-def test_list_all_users(client, user, token):
-    user_schema = UserPublic.model_validate(user).model_dump()
+def test_list_all_users(client, user, novelist, token):
+    user_schema = UserPublicBooks.model_validate(user).model_dump()
 
     response = client.get(
         '/users/list-all-users', headers={'Authorization': f'Bearer {token}'}
@@ -57,7 +57,7 @@ def test_list_all_users(client, user, token):
 
 
 def test_get_user_by_id(client, user, token):
-    user_schema = UserPublic.model_validate(user).model_dump()
+    user_schema = UserPublicBooks.model_validate(user).model_dump()
     response = client.get(
         f'/users/user/{user.id}', headers={'Authorization': f'Bearer {token}'}
     )

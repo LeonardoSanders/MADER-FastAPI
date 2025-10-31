@@ -1,8 +1,7 @@
 from http import HTTPStatus
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter
 from sqlalchemy import select
-from sqlalchemy.exc import IntegrityError
 
 from mader_project.dependencies import CurrentUser, Session
 from mader_project.functions.func_novelists_utils import (
@@ -18,8 +17,8 @@ router = APIRouter(prefix='/novelists', tags=['novelists'])
 
 @router.post(
     '/create-novelist',
-    response_model=NovelistSchema,
     status_code=HTTPStatus.CREATED,
+    response_model=NovelistSchema,
 )
 async def create_novelist(
     novelist: NovelistSchema, session: Session, current_user: CurrentUser
@@ -47,8 +46,8 @@ async def get_all_novelists(session: Session, current_user: CurrentUser):
 
 @router.get(
     '/list-novelists/{name}',
-    response_model=NoveLists,
     status_code=HTTPStatus.OK,
+    response_model=NoveLists,
 )
 async def get_novelists_by_filter_name(
     name: str, session: Session, current_user: CurrentUser
@@ -83,19 +82,14 @@ async def edit_novelist_by_id(
 ):
     novelist_db = await verify_existing_novelist_by_id(id, session)
     novelist_name = normalize_text(novelist.name)
+    await verify_existing_novelist_by_name(novelist.name, session)
 
-    try:
-        novelist_db.name = novelist_name
+    novelist_db.name = novelist_name
 
-        await session.commit()
-        await session.refresh(novelist_db)
+    await session.commit()
+    await session.refresh(novelist_db)
 
-        return novelist_db
-
-    except IntegrityError:
-        raise HTTPException(
-            status_code=HTTPStatus.CONFLICT, detail='Novelist already exists!'
-        )
+    return novelist_db
 
 
 @router.delete(
@@ -108,14 +102,7 @@ async def delete_novelist_by_id(
 ):
     novelist_db = await verify_existing_novelist_by_id(id, session)
 
-    try:
-        await session.delete(novelist_db)
-        await session.commit()
+    await session.delete(novelist_db)
+    await session.commit()
 
-        return {'message': 'Novelist deleted from MADER database'}
-
-    except IntegrityError:
-        raise HTTPException(
-            status_code=HTTPStatus.INTERNAL_SERVER_ERROR,
-            detail='Novelist already deleted!',
-        )
+    return {'message': 'Novelist deleted!'}

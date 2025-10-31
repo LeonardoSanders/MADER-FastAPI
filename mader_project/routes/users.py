@@ -3,6 +3,7 @@ from http import HTTPStatus
 from fastapi import APIRouter, HTTPException
 from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
+from sqlalchemy.orm import selectinload
 
 from mader_project.dependencies import CurrentUser, Session
 from mader_project.functions.func_books_utils import verify_existing_book_by_id
@@ -16,6 +17,7 @@ from mader_project.schemas import (
     Message,
     UserList,
     UserPublic,
+    UserPublicBooks,
     UserSchema,
 )
 from mader_project.security import get_password_hash
@@ -48,13 +50,21 @@ async def create_user(user: UserSchema, session: Session):
     '/list-all-users', response_model=UserList, status_code=HTTPStatus.OK
 )
 async def list_all_users(session: Session, current_user: CurrentUser):
-    users_db = (await session.scalars(select(User).where(User.status))).all()
+    users_db = (
+        await session.scalars(
+            select(User)
+            .where(User.status)
+            .options(selectinload(User.read_books))
+        )
+    ).all()
 
     return {'users': users_db}
 
 
 @router.get(
-    '/user/{user_id}', response_model=UserPublic, status_code=HTTPStatus.OK
+    '/user/{user_id}',
+    response_model=UserPublicBooks,
+    status_code=HTTPStatus.OK,
 )
 async def get_user_by_id(
     user_id: int, session: Session, current_user: CurrentUser
